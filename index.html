@@ -9,7 +9,7 @@
     
     /* Header */
     .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
-    .logo-irpc { height: 60px; width: auto; }
+    .logo-irpc { height: 65px; width: auto; }
     .title-group h1 { color: #004a99; margin: 0; font-size: 32px; }
 
     /* Summary Cards */
@@ -45,7 +45,7 @@
 <div class="container">
   <div class="header-flex">
     <div class="title-group">
-      <h1>📊 Project IL Tracking</h1>
+      <h1> Project IL Tracking</h1>
     </div>
     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/IRPC_Logo.svg/1200px-IRPC_Logo.svg.png" alt="IRPC Logo" class="logo-irpc">
   </div>
@@ -59,139 +59,4 @@
   </div>
   
   <div class="input-group">
-    <input type="hidden" id="currentDocId"> 
-    <div class="field"><label>ชื่อโครงการ *</label><input type="text" id="project" style="width:280px;"></div>
-    <div class="field"><label>ผู้รับผิดชอบ</label><input type="text" id="owner" style="width:130px;"></div>
-    <div class="field">
-      <label>สถานะ</label>
-      <select id="stage">
-        <option value="IL0">IL0</option>
-        <option value="IL3">IL3</option>
-        <option value="IL5">IL5</option>
-      </select>
-    </div>
-    <div class="field"><label>ยอดประหยัด (บาท)</label><input type="number" id="saving"></div>
-    <div class="field"><label>Deadline</label><input type="date" id="deadline"></div>
-    <button class="btn-save" id="btnSave" onclick="saveData()">บันทึกข้อมูล</button>
-    <button onclick="resetForm()" style="background:#6c757d; color:white;">ล้าง</button>
-  </div>
-
-  <button class="btn-export" onclick="exportToCSV()">📥 Export Excel (.csv)</button>
-
-  <table>
-    <thead>
-      <tr>
-        <th>ชื่อโครงการ</th><th>ผู้รับผิดชอบ</th><th>สถานะ</th><th>ยอดประหยัด</th><th>Deadline</th><th>จัดการ</th>
-      </tr>
-    </thead>
-    <tbody id="tableBody"></tbody>
-  </table>
-</div>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, addDoc, updateDoc, getDocs, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyBUDRGCT-l-2_A2yS4yAZo-vw00yvNPY8k",
-    authDomain: "costsavingtracking.firebaseapp.com",
-    projectId: "costsavingtracking",
-    storageBucket: "costsavingtracking.firebasestorage.app",
-    messagingSenderId: "813825582028",
-    appId: "1:813825582028:web:09266d80d472f8333d7369"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  window.saveData = async function() {
-    const projName = document.getElementById("project").value.trim();
-    if (!projName) return alert("กรุณาระบุชื่อโครงการ");
-    const payload = {
-      project: projName,
-      owner: document.getElementById("owner").value.trim() || "-",
-      stage: document.getElementById("stage").value,
-      saving: Number(document.getElementById("saving").value) || 0,
-      deadline: document.getElementById("deadline").value || "-",
-      time: new Date()
-    };
-    try {
-      const id = document.getElementById("currentDocId").value;
-      if (id) { await updateDoc(doc(db, "projects", id), payload); } 
-      else { await addDoc(collection(db, "projects"), payload); }
-      resetForm(); loadProjects();
-    } catch (e) { alert("Error: " + e.message); }
-  }
-
-  window.editProject = (id, p, o, s, v, d) => {
-    document.getElementById("currentDocId").value = id;
-    document.getElementById("project").value = p;
-    document.getElementById("owner").value = (o === "-") ? "" : o;
-    document.getElementById("stage").value = s;
-    document.getElementById("saving").value = v;
-    document.getElementById("deadline").value = (d === "-") ? "" : d;
-    document.getElementById("btnSave").innerText = "อัปเดตข้อมูล";
-  }
-
-  window.deleteProject = async (id) => {
-    if (confirm("ต้องการลบโครงการนี้ใช่หรือไม่?")) { await deleteDoc(doc(db, "projects", id)); loadProjects(); }
-  }
-
-  window.resetForm = () => {
-    document.getElementById("currentDocId").value = "";
-    document.getElementById("project").value = "";
-    document.getElementById("owner").value = "";
-    document.getElementById("saving").value = "";
-    document.getElementById("deadline").value = "";
-    document.getElementById("stage").selectedIndex = 0;
-    document.getElementById("btnSave").innerText = "บันทึกข้อมูล";
-  }
-
-  async function loadProjects() {
-    const q = query(collection(db, "projects"), orderBy("time", "desc"));
-    const snap = await getDocs(q);
-    const tbody = document.getElementById("tableBody");
-    tbody.innerHTML = "";
-    let stats = { t:0, il0:0, il3:0, il5:0, money:0 };
-    let csv = "\uFEFFProject,Owner,Stage,Saving,Deadline\n";
-
-    snap.forEach((dDoc) => {
-      const d = dDoc.data();
-      stats.t++;
-      if(d.stage === "IL0") stats.il0++;
-      if(d.stage === "IL3") stats.il3++;
-      if(d.stage === "IL5") stats.il5++;
-      stats.money += d.saving;
-      csv += `${d.project},${d.owner},${d.stage},${d.saving},${d.deadline}\n`;
-
-      tbody.innerHTML += `<tr>
-        <td><strong>${d.project}</strong></td>
-        <td>${d.owner}</td>
-        <td><span class="status-badge ${d.stage.toLowerCase()}">${d.stage}</span></td>
-        <td>${d.saving.toLocaleString()} บาท</td>
-        <td>${d.deadline}</td>
-        <td>
-          <button style="background:#ffc107" onclick="editProject('${dDoc.id}','${d.project}','${d.owner}','${d.stage}',${d.saving},'${d.deadline}')">แก้</button>
-          <button style="background:#dc3545;color:#fff" onclick="deleteProject('${dDoc.id}')">ลบ</button>
-        </td>
-      </tr>`;
-    });
-    document.getElementById("totalProjects").innerText = stats.t;
-    document.getElementById("il0Count").innerText = stats.il0;
-    document.getElementById("il3Count").innerText = stats.il3;
-    document.getElementById("il5Count").innerText = stats.il5;
-    document.getElementById("totalSaving").innerText = stats.money.toLocaleString();
-    window.currentCsv = csv;
-  }
-
-  window.exportToCSV = () => {
-    const blob = new Blob([window.currentCsv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "IRPC_Project_Report.csv";
-    link.click();
-  }
-  loadProjects();
-</script>
-</body>
-</html>
+    <input type="hidden"
