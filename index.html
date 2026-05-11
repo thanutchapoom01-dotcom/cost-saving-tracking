@@ -2,37 +2,51 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IRPC Project Tracking Dashboard</title>
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f4f7f9; }
-    .container { max-width: 1250px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; }
-    .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
-    .logo-irpc { height: 50px; width: auto; }
-    .title-group h1 { color: #004a99; margin: 0; font-size: 28px; }
-    .title-group p { margin: 5px 0 0; color: #666; font-size: 14px; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f4f7f9; color: #333; }
+    .container { max-width: 1300px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; }
     
+    /* Header & Logo */
+    .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+    .logo-irpc { height: 50px; width: auto; object-fit: contain; }
+    .title-group h1 { color: #004a99; margin: 0; font-size: 28px; display: flex; align-items: center; gap: 10px; }
+
+    /* Summary Cards */
     .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
     .card { background: #fff; padding: 15px; border-radius: 10px; border-left: 5px solid #004a99; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: center; }
-    .card h3 { margin: 0; font-size: 12px; color: #888; text-transform: uppercase; }
-    .card p { margin: 10px 0 0; font-size: 22px; font-weight: bold; }
-    .unit { font-size: 13px; font-weight: normal; color: #666; }
+    .card h3 { margin: 0; font-size: 13px; color: #888; text-transform: uppercase; }
+    .card p { margin: 10px 0 0; font-size: 24px; font-weight: bold; color: #222; }
+    .unit { font-size: 14px; font-weight: normal; color: #666; margin-left: 5px; }
 
-    .input-group { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; padding: 20px; background: #fdfdfd; border: 1px solid #e0e0e0; border-radius: 10px; align-items: flex-end; }
+    /* Input Zone */
+    .input-group { display: flex; gap: 12px; margin-bottom: 25px; flex-wrap: wrap; padding: 20px; background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 10px; align-items: flex-end; }
     .field { display: flex; flex-direction: column; gap: 5px; }
     .field label { font-size: 12px; font-weight: bold; color: #555; }
-    input, select { padding: 10px; border: 1px solid #ddd; border-radius: 6px; outline: none; }
+    input, select { padding: 10px; border: 1px solid #ccc; border-radius: 6px; outline: none; font-size: 14px; }
+    input:focus { border-color: #004a99; }
     
-    button { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    button { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 14px; }
     .btn-save { background: #004a99; color: white; }
-    .btn-export { background: #28a745; color: white; margin-bottom: 15px; }
+    .btn-save:hover { background: #003366; }
+    .btn-export { background: #28a745; color: white; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+    .btn-export:hover { background: #218838; }
     
-    table { width: 100%; border-collapse: collapse; }
+    /* Table */
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 800px; }
     th, td { padding: 15px; text-align: left; border-bottom: 1px solid #f0f0f0; }
-    th { background-color: #f8f9fa; color: #555; font-size: 13px; }
-    .status-badge { padding: 4px 12px; border-radius: 15px; font-size: 11px; font-weight: bold; }
+    th { background-color: #f1f3f5; color: #495057; font-size: 13px; text-transform: uppercase; }
+    
+    /* Status Badges */
+    .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; display: inline-block; }
     .il0 { background: #e9ecef; color: #495057; }
-    .il3 { background: #fff3cd; color: #856404; }
-    .il5 { background: #d4edda; color: #155724; }
+    .il3 { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+    .il5 { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+
+    .btn-edit { background: #ffc107; color: #212529; margin-right: 5px; }
+    .btn-delete { background: #dc3545; color: white; }
   </style>
 </head>
 <body>
@@ -41,52 +55,53 @@
   <div class="header-flex">
     <div class="title-group">
       <h1>📊 Project IL Tracking</h1>
-      <p>Cost Saving Monitoring System | IRPC Engineering Internship</p>
     </div>
-    <img src="https://www.irpc.co.th/wp-content/uploads/2020/05/logo-irpc.png" alt="IRPC Logo" class="logo-irpc">
+    <img src="https://www.irpc.co.th/wp-content/uploads/2021/02/logo.png" alt="IRPC Logo" class="logo-irpc" onerror="this.src='https://via.placeholder.com/150x50?text=IRPC+LOGO'">
   </div>
 
   <div class="summary-grid">
     <div class="card" style="border-left-color: #004a99;"><h3>ทั้งหมด</h3><p id="totalProjects">0</p></div>
-    <div class="card" style="border-left-color: #adb5bd;"><h3>สถานะ IL0</h3><p id="il0Projects">0</p></div>
-    <div class="card" style="border-left-color: #ffc107;"><h3>สถานะ IL3</h3><p id="ongoingProjects">0</p></div>
-    <div class="card" style="border-left-color: #28a745;"><h3>สถานะ IL5</h3><p id="successProjects">0</p></div>
+    <div class="card" style="border-left-color: #adb5bd;"><h3>สถานะ IL0</h3><p id="il0Count">0</p></div>
+    <div class="card" style="border-left-color: #ffc107;"><h3>สถานะ IL3</h3><p id="il3Count">0</p></div>
+    <div class="card" style="border-left-color: #28a745;"><h3>สถานะ IL5</h3><p id="il5Count">0</p></div>
     <div class="card" style="border-left-color: #00c2cb;"><h3>ยอดประหยัดรวม</h3><p><span id="totalSaving">0</span> <span class="unit">บาท</span></p></div>
   </div>
   
   <div class="input-group">
     <input type="hidden" id="currentDocId"> 
-    <div class="field"><label>ชื่อโครงการ *</label><input type="text" id="project" style="width:250px;"></div>
-    <div class="field"><label>ผู้รับผิดชอบ</label><input type="text" id="owner" style="width:120px;"></div>
+    <div class="field"><label>ชื่อโครงการ *</label><input type="text" id="project" placeholder="ระบุชื่อโครงการ" style="width:280px;"></div>
+    <div class="field"><label>ผู้รับผิดชอบ</label><input type="text" id="owner" placeholder="ชื่อพนักงาน" style="width:130px;"></div>
     <div class="field">
       <label>สถานะ</label>
       <select id="stage">
-        <option value="IL0">IL0</option>
-        <option value="IL3">IL3</option>
-        <option value="IL5">IL5</option>
+        <option value="IL0">IL0 - Idea</option>
+        <option value="IL3">IL3 - Implementation</option>
+        <option value="IL5">IL5 - Completed</option>
       </select>
     </div>
-    <div class="field"><label>ยอดประหยัด (บาท)</label><input type="number" id="saving"></div>
+    <div class="field"><label>ยอดประหยัด (บาท)</label><input type="number" id="saving" placeholder="0"></div>
     <div class="field"><label>Deadline</label><input type="date" id="deadline"></div>
-    <button class="btn-save" id="btnSave" onclick="saveData()">บันทึก</button>
-    <button onclick="resetForm()" style="background:#6c757d; color:white;">ล้าง</button>
+    <button class="btn-save" id="btnSave" onclick="saveData()">💾 บันทึกข้อมูล</button>
+    <button onclick="resetForm()" style="background:#6c757d; color:white;">ล้างหน้าจอ</button>
   </div>
 
-  <button class="btn-export" onclick="exportToCSV()">📥 Export Excel</button>
+  <button class="btn-export" onclick="exportToCSV()">📥 Export Excel (.csv)</button>
 
-  <table>
-    <thead>
-      <tr>
-        <th>ชื่อโครงการ</th><th>ผู้รับผิดชอบ</th><th>สถานะ</th><th>ยอดประหยัด</th><th>Deadline</th><th>จัดการ</th>
-      </tr>
-    </thead>
-    <tbody id="tableBody"></tbody>
-  </table>
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>ชื่อโครงการ</th><th>ผู้รับผิดชอบ</th><th>สถานะ</th><th>ยอดประหยัด</th><th>Deadline</th><th>จัดการ</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, addDoc, updateDoc, getDocs, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, updateDoc, getDocs, query, orderBy, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBUDRGCT-l-2_A2yS4yAZo-vw00yvNPY8k",
@@ -100,9 +115,11 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
+  // ฟังก์ชันบันทึกข้อมูล
   window.saveData = async function() {
     const projName = document.getElementById("project").value.trim();
     if (!projName) return alert("กรุณาระบุชื่อโครงการ");
+    
     const payload = {
       project: projName,
       owner: document.getElementById("owner").value.trim() || "-",
@@ -111,75 +128,15 @@
       deadline: document.getElementById("deadline").value || "-",
       time: new Date()
     };
+
     try {
       const id = document.getElementById("currentDocId").value;
-      if (id) { await updateDoc(doc(db, "projects", id), payload); } 
-      else { await addDoc(collection(db, "projects"), payload); }
-      resetForm(); loadProjects();
-    } catch (e) { alert("Error: " + e.message); }
-  }
-
-  window.editProject = (id, p, o, s, v, d) => {
-    document.getElementById("currentDocId").value = id;
-    document.getElementById("project").value = p;
-    document.getElementById("owner").value = (o === "-") ? "" : o;
-    document.getElementById("stage").value = s;
-    document.getElementById("saving").value = v;
-    document.getElementById("deadline").value = (d === "-") ? "" : d;
-    document.getElementById("btnSave").innerText = "อัปเดต";
-  }
-
-  window.deleteProject = async (id) => {
-    if (confirm("ลบโครงการนี้?")) { await deleteDoc(doc(db, "projects", id)); loadProjects(); }
-  }
-
-  window.resetForm = () => {
-    document.getElementById("currentDocId").value = "";
-    document.getElementById("project").value = "";
-    document.getElementById("owner").value = "";
-    document.getElementById("saving").value = "";
-    document.getElementById("deadline").value = "";
-    document.getElementById("stage").selectedIndex = 0;
-    document.getElementById("btnSave").innerText = "บันทึก";
-  }
-
-  async function loadProjects() {
-    const q = query(collection(db, "projects"), orderBy("time", "desc"));
-    const snap = await getDocs(q);
-    const tbody = document.getElementById("tableBody");
-    tbody.innerHTML = "";
-    let stats = { t:0, il0:0, il3:0, il5:0, money:0 };
-    let csv = "Project,Owner,Stage,Saving,Deadline\n";
-
-    snap.forEach((dDoc) => {
-      const d = dDoc.data();
-      stats.t++;
-      if(d.stage === "IL0") stats.il0++;
-      if(d.stage === "IL3") stats.il3++;
-      if(d.stage === "IL5") stats.il5++;
-      stats.money += d.saving;
-      csv += `${d.project},${d.owner},${d.stage},${d.saving},${d.deadline}\n`;
-
-      tbody.innerHTML += `<tr>
-        <td><strong>${d.project}</strong></td>
-        <td>${d.owner}</td>
-        <td><span class="status-badge ${d.stage.toLowerCase()}">${d.stage}</span></td>
-        <td>${d.saving.toLocaleString()} บาท</td>
-        <td>${d.deadline}</td>
-        <td>
-          <button style="background:#ffc107" onclick="editProject('${dDoc.id}','${d.project}','${d.owner}','${d.stage}',${d.saving},'${d.deadline}')">แก้</button>
-          <button style="background:#dc3545;color:#fff" onclick="deleteProject('${dDoc.id}')">ลบ</button>
-        </td>
-      </tr>`;
-    });
-    document.getElementById("totalProjects").innerText = stats.t;
-    document.getElementById("il0Projects").innerText = stats.il0;
-    document.getElementById("ongoingProjects").innerText = stats.il3;
-    document.getElementById("successProjects").innerText = stats.il5;
-    document.getElementById("totalSaving").innerText = stats.money.toLocaleString();
-    window.currentCsv = csv;
-  }
-
-  window.exportToCSV = () => {
-    const blob = new Blob(["\ufeff" + window.currentCsv], { type: 'text/csv;charset=utf-8;' });
-    const link = document
+      if (id) { 
+        await updateDoc(doc(db, "projects", id), payload); 
+        alert("อัปเดตข้อมูลสำเร็จ!");
+      } else { 
+        await addDoc(collection(db, "projects"), payload); 
+        alert("เพิ่มโครงการสำเร็จ!");
+      }
+      resetForm();
+    } catch (e) {
