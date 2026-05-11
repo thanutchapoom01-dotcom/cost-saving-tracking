@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IRPC Project Tracking Dashboard</title>
+  <title>MCSP IL Tracking Dashboard</title>
   <style>
     :root {
       --primary: #004a99;
@@ -74,7 +74,7 @@
 <div class="container">
   <div class="header-flex">
     <div class="title-group">
-      <h1>📊 Project IL Tracking</h1>
+      <h1>📊 MCSP IL Tracking</h1>
     </div>
   </div>
 
@@ -248,7 +248,7 @@
     const blob = new Blob([window.currentCsv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "Project_Report.csv";
+    link.download = "MCSP_Project_Report.csv";
     link.click();
   }
 
