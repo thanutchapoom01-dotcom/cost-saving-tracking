@@ -11,7 +11,6 @@
     .card { background: #fff; padding: 20px; border-radius: 10px; border-left: 5px solid #004a99; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: center; }
     .card h3 { margin: 0; font-size: 14px; color: #888; }
     .card p { margin: 10px 0 0; font-size: 24px; font-weight: bold; }
-    .unit { font-size: 14px; font-weight: normal; margin-left: 5px; color: #666; } /* สไตล์หน่วยบาท */
     .input-group { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; padding: 20px; background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; align-items: flex-end; }
     .field { display: flex; flex-direction: column; gap: 5px; }
     input, select { padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
@@ -32,17 +31,14 @@
   <div class="summary-grid">
     <div class="card"><h3>ทั้งหมด</h3><p id="totalProjects">0</p></div>
     <div class="card"><h3>IL3</h3><p id="ongoingProjects">0</p></div>
-    <div class="card" style="border-left-color: #28a745;"><h3>IL5 (สำเร็จ)</h3><p id="successProjects">0</p></div>
-    <div class="card" style="border-left-color: #00c2cb;">
-      <h3>ยอดประหยัดรวม</h3>
-      <p><span id="totalSaving">0</span> <span class="unit">บาท</span></p>
-    </div>
+    <div class="card"><h3>IL5</h3><p id="successProjects">0</p></div>
+    <div class="card"><h3>เลยกำหนด</h3><p id="overdueProjects">0</p></div>
   </div>
   
   <div class="input-group">
     <input type="hidden" id="currentDocId"> 
-    <div class="field"><label>ชื่อโครงการ *</label><input type="text" id="project" placeholder="ชื่อโครงการ"></div>
-    <div class="field"><label>ผู้รับผิดชอบ</label><input type="text" id="owner" placeholder="ชื่อคนทำ"></div>
+    <div class="field"><label>ชื่อโครงการ *</label><input type="text" id="project"></div>
+    <div class="field"><label>ผู้รับผิดชอบ</label><input type="text" id="owner"></div>
     <div class="field">
       <label>สถานะ</label>
       <select id="stage">
@@ -51,10 +47,10 @@
         <option value="IL5">IL5</option>
       </select>
     </div>
-    <div class="field"><label>ยอดประหยัด (บาท)</label><input type="number" id="saving" placeholder="ระบุจำนวนเงิน"></div>
+    <div class="field"><label>ยอดประหยัด (฿)</label><input type="number" id="saving"></div>
     <div class="field"><label>Deadline</label><input type="date" id="deadline"></div>
-    <button class="btn-save" onclick="saveData()">บันทึกข้อมูล</button>
-    <button onclick="resetForm()" style="background:#6c757d; color:white;">ล้าง</button>
+    <button class="btn-save" onclick="saveData()">บันทึก</button>
+    <button onclick="resetForm()">ล้าง</button>
   </div>
 
   <button class="btn-export" onclick="exportToCSV()">📥 Export Excel</button>
@@ -73,6 +69,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getFirestore, collection, addDoc, updateDoc, getDocs, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+  // ตรวจสอบตัวแปร Firebase ตรงนี้ว่าก๊อปมาครบไหม
   const firebaseConfig = {
     apiKey: "AIzaSyBUDRGCT-l-2_A2yS4yAZo-vw00yvNPY8k",
     authDomain: "costsavingtracking.firebaseapp.com",
@@ -142,37 +139,34 @@
     const q = query(collection(db, "projects"), orderBy("time", "desc"));
     const snap = await getDocs(q);
     const tbody = document.getElementById("tableBody");
+    const today = new Date().toISOString().split('T')[0];
     tbody.innerHTML = "";
-    let stats = { t:0, o:0, s:0, totalMoney:0 };
+    let stats = { t:0, o:0, s:0, d:0 };
     let csv = "Project,Owner,Stage,Saving,Deadline\n";
 
     snap.forEach((dDoc) => {
       const d = dDoc.data();
       stats.t++;
       if(d.stage === "IL3") stats.o++;
-      if(d.stage === "IL5") {
-          stats.s++;
-          stats.totalMoney += d.saving; // รวมยอดเงินเฉพาะ IL5 หรือทั้งหมดก็ได้ (ในที่นี้คือรวมทั้งหมด)
-      }
+      if(d.stage === "IL5") stats.s++;
+      const isOver = (d.deadline !== "-" && d.deadline < today && d.stage !== "IL5");
+      if(isOver) stats.d++;
       csv += `${d.project},${d.owner},${d.stage},${d.saving},${d.deadline}\n`;
 
       tbody.innerHTML += `<tr>
-        <td><strong>${d.project}</strong></td>
-        <td>${d.owner}</td>
+        <td>${d.project}</td><td>${d.owner}</td>
         <td><span class="status-badge ${d.stage.toLowerCase()}">${d.stage}</span></td>
-        <td>${d.saving.toLocaleString()} <small>บาท</small></td>
-        <td>${d.deadline}</td>
+        <td>${d.saving.toLocaleString()}</td><td>${d.deadline}</td>
         <td>
           <button style="background:#ffc107" onclick="editProject('${dDoc.id}','${d.project}','${d.owner}','${d.stage}',${d.saving},'${d.deadline}')">แก้</button>
           <button style="background:#dc3545;color:white" onclick="deleteProject('${dDoc.id}')">ลบ</button>
         </td>
       </tr>`;
     });
-    
     document.getElementById("totalProjects").innerText = stats.t;
     document.getElementById("ongoingProjects").innerText = stats.o;
     document.getElementById("successProjects").innerText = stats.s;
-    document.getElementById("totalSaving").innerText = stats.totalMoney.toLocaleString();
+    document.getElementById("overdueProjects").innerText = stats.d;
     window.currentCsv = csv;
   }
 
@@ -180,7 +174,7 @@
     const blob = new Blob(["\ufeff" + window.currentCsv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "Project_Report.csv";
+    link.download = "Report.csv";
     link.click();
   }
 
